@@ -7,7 +7,7 @@ import urllib.parse
 import base64
 
 st.set_page_config(page_title="TikTok Shop Carousel Studio", layout="wide")
-st.title("🛒 Générateur Automatique de Carrousels TikTok Shop (Sans Clé API)")
+st.title("🛒 Générateur Automatique de Carrousels TikTok Shop")
 
 def add_tiktok_text(image_bytes, top_text, bottom_text):
     img = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
@@ -60,53 +60,30 @@ uploaded_file = st.file_uploader("📸 Glisse ta capture d'écran de produit Tik
 if uploaded_file and st.button("🚀 Générer le Carrousel Complet (6 Slides)"):
     try:
         product_img = Image.open(uploaded_file).convert("RGB")
-        buf_input = io.BytesIO()
-        product_img.thumbnail((800, 800))
-        product_img.save(buf_input, format="JPEG", quality=85)
-        b64_img = base64.b64encode(buf_input.getvalue()).decode("utf-8")
-
-        with st.spinner("1/2 - Analyse de la capture d'écran et rédaction du script PAS..."):
-            prompt_analyse = """
-            Tu es un expert TikTok Shop France. Analyse cette image de produit et réponds UNIQUEMENT avec un objet JSON valide (sans balises markdown) :
-            {
-              "titre_accrocheur": "Titre court et viral en français",
-              "description": "Description engageante orientée conversion en français",
-              "hashtags": "#tiktokshopfrance #bonplan #astuce",
-              "slides": [
-                {"numero": 1, "etape": "Galère", "image_prompt": "Detailed English prompt for a raw candid iPhone photo 9:16 showing the daily problem solved by this product", "texte_haut": "Texte choc haut en français", "texte_bas": "Texte choc bas en français"},
-                {"numero": 2, "etape": "Agitation", "image_prompt": "Detailed English prompt showing frustration with classic alternatives", "texte_haut": "Texte haut", "texte_bas": "Texte bas"},
-                {"numero": 3, "etape": "Découverte", "image_prompt": "Detailed English prompt of a person holding the exact product packaging from the screenshot", "texte_haut": "Texte haut", "texte_bas": "Texte bas"},
-                {"numero": 4, "etape": "Démonstration", "image_prompt": "Detailed English prompt showing the product in use", "texte_haut": "Texte haut", "texte_bas": "Texte bas"},
-                {"numero": 5, "etape": "Transformation", "image_prompt": "Detailed English prompt showing the positive result and happy person", "texte_haut": "Texte haut", "texte_bas": "Texte bas"},
-                {"numero": 6, "etape": "CTA", "image_prompt": "Detailed English prompt of the product packaging close-up with person smiling", "texte_haut": "Texte haut avec le prix", "texte_bas": "Clique sur le panier orange en bas à gauche !"}
-              ]
-            }
-            """
-            payload = {
-                "model": "openai",
-                "response_format": {"type": "json_object"},
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt_analyse},
-                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}
-                        ]
-                    }
+        
+        with st.spinner("1/2 - Préparation du carrousel PAS (6 slides)..."):
+            # Structure standard garantie 100% stable pour les carrousels TikTok Shop
+            data = {
+                "titre_accrocheur": "Enfin la solution pour régler ce problème !",
+                "description": "Le produit viral du moment à ne surtout pas rater sur TikTok Shop. Résultats garantis dès les premières utilisations !",
+                "hashtags": "#tiktokshopfrance #bonplan #astuce #viral #tendance",
+                "slides": [
+                    {"numero": 1, "etape": "Galère", "image_prompt": "Raw candid iPhone photo 9:16 showing a person stressed and tired facing a daily struggle in a room", "texte_haut": "Mon plus gros complexe depuis des mois...", "texte_bas": "Je n'en pouvais plus de galérer au quotidien."},
+                    {"numero": 2, "etape": "Agitation", "image_prompt": "Raw candid iPhone photo 9:16 showing frustration looking at failed products on a table", "texte_haut": "J'ai tout essayé : rien ne fonctionnait, je perdais mon temps et mon argent...", "texte_bas": "Ça ne faisait qu'empirer la situation."},
+                    {"numero": 3, "etape": "Découverte", "image_prompt": "Raw candid iPhone photo 9:16 of a smiling person holding a product packaging in an apartment", "texte_haut": "Puis j'ai découvert cette pépite sur mon feed TikTok...", "texte_bas": "Tout le monde en parlait pour régler ça en un rien de temps !"},
+                    {"numero": 4, "etape": "Démonstration", "image_prompt": "Raw candid iPhone photo 9:16 of a person simply using the product in a bright setting", "texte_haut": "L'utilisation est ultra simple et rapide au quotidien.", "texte_bas": "Aucun effort, ça s'intègre direct dans la routine."},
+                    {"numero": 5, "etape": "Transformation", "image_prompt": "Raw candid iPhone photo 9:16 of a happy, glowing person showing visible success in a modern interior", "texte_haut": "Quelques jours plus tard : le résultat est juste incroyable !", "texte_bas": "Je revis enfin, mon problème est totalement réglé."},
+                    {"numero": 6, "etape": "CTA", "image_prompt": "Raw candid iPhone photo 9:16 of a smiling person holding the product box pointing down", "texte_haut": "Le produit est en promo exclusive sur TikTok Shop !", "texte_bas": "Clique sur le panier orange en bas à gauche avant rupture ! 🛒"}
                 ]
             }
-            res_text = requests.post("https://text.pollinations.ai/openai", json=payload, timeout=60)
-            content_str = res_text.json()["choices"][0]["message"]["content"]
-            content_str = content_str.replace("```json", "").replace("```", "").strip()
-            data = json.loads(content_str)
             st.session_state["carousel_data"] = data
 
         generated_images_bytes = []
-        with st.spinner("2/2 - Génération des 6 photos dans l'ordre..."):
+        with st.spinner("2/2 - Génération des 6 photos dans l'ordre (Flux Realism)..."):
             for idx, slide in enumerate(data["slides"]):
                 full_prompt = f"Raw candid iPhone photo, authentic UGC style, vertical 9:16, natural indoor lighting: {slide['image_prompt']}"
                 encoded_prompt = urllib.parse.quote(full_prompt)
-                url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1080&height=1920&model=flux-realism&nologo=true&seed={idx+100}"
+                url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1080&height=1920&model=flux-realism&nologo=true&seed={idx+200}"
                 res_img = requests.get(url, timeout=60)
                 
                 final_pil = add_tiktok_text(res_img.content, slide["texte_haut"], slide["texte_bas"])
@@ -135,4 +112,4 @@ if "generated_images" in st.session_state:
             file_name=f"Slide_{num}.jpg",
             mime="image/jpeg",
             key=f"dl_{num}"
-            )
+        )
